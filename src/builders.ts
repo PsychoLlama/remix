@@ -4,6 +4,7 @@ import type {
   StringLiteral,
   NumberLiteral,
   BooleanLiteral,
+  TupleExpression,
   CallExpression,
   BindExpression,
   Expression,
@@ -40,6 +41,12 @@ export const bool = (value: boolean): BooleanLiteral => ({
   location: getLocation(),
   type: NodeType.BooleanLiteral,
   value,
+});
+
+export const tuple = (elements: Array<Expression>): TupleExpression => ({
+  location: getLocation(),
+  type: NodeType.TupleExpression,
+  elements,
 });
 
 export const ident = (name: string): Identifier => ({

@@ -4,6 +4,7 @@ export enum ValueType {
   String,
   Number,
   Boolean,
+  Tuple,
   Lambda,
 }
 
@@ -22,6 +23,11 @@ export interface BooleanValue {
   value: boolean;
 }
 
+export interface Tuple {
+  type: ValueType.Tuple;
+  elements: Array<Value>;
+}
+
 export interface Lambda {
   type: ValueType.Lambda;
   environment: Map<string, Value>;
@@ -29,4 +35,4 @@ export interface Lambda {
   body: Expression;
 }
 
-export type Value = StringValue | NumberValue | BooleanValue | Lambda;
+export type Value = StringValue | NumberValue | BooleanValue | Tuple | Lambda;

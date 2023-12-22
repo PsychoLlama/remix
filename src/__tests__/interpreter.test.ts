@@ -1,4 +1,14 @@
-import { str, num, bool, bind, assign, ident, lambda, call } from '../builders';
+import {
+  str,
+  num,
+  bool,
+  tuple,
+  bind,
+  assign,
+  ident,
+  lambda,
+  call,
+} from '../builders';
 import { interpret } from '../interpreter';
 import { compile } from '../compiler';
 import type * as T from '../values';
@@ -40,6 +50,28 @@ describe('interpreter', () => {
     expect(run(bool(false))).toEqual<T.BooleanValue>({
       type: ValueType.Boolean,
       value: false,
+    });
+  });
+
+  it('can evaluate tuples', () => {
+    const value = run(
+      bind(
+        [
+          assign(ident('x'), num(1)),
+          assign(ident('y'), num(2)),
+          assign(ident('z'), num(3)),
+        ],
+        tuple([ident('x'), ident('y'), ident('z')]),
+      ),
+    );
+
+    expect(value).toEqual<T.Tuple>({
+      type: ValueType.Tuple,
+      elements: [
+        { type: ValueType.Number, value: 1 },
+        { type: ValueType.Number, value: 2 },
+        { type: ValueType.Number, value: 3 },
+      ],
     });
   });
 

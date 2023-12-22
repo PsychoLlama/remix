@@ -39,6 +39,13 @@ function run(expression: Expression, context: EvaluationContext): T.Value {
       };
     }
 
+    case NodeType.TupleExpression: {
+      return {
+        type: ValueType.Tuple,
+        elements: expression.elements.map((element) => run(element, context)),
+      };
+    }
+
     case NodeType.BindExpression: {
       // Evaluate the bindings in order, adding them to the environment.
       const contextWithBindings = expression.bindings.reduce(
