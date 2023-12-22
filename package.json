@@ -1,0 +1,67 @@
+{
+  "name": "@psychollama/minilang",
+  "version": "0.0.0",
+  "description": "A minimal programming language",
+  "author": "Jesse Gibson",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/minilang.js"
+  },
+  "scripts": {
+    "prepack": "tsc && vite build",
+    "build": "vite",
+    "dev": "vite build --watch",
+    "test:unit": "vitest",
+    "test:lint": "eslint src --color",
+    "test:types": "tsc",
+    "test:fmt": "prettier --check src --color"
+  },
+  "prettier": {
+    "singleQuote": true
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "sourceType": "module"
+    },
+    "overrides": [
+      {
+        "files": [
+          "./**/__tests__/*.ts{x,}"
+        ],
+        "rules": {
+          "@typescript-eslint/no-explicit-any": "off"
+        }
+      }
+    ],
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+      "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-non-null-assertion": "off",
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-use-before-define": "off",
+      "no-prototype-builtins": "off"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "vitest": "^1.1.0"
+  }
+}
