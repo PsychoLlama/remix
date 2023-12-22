@@ -90,4 +90,15 @@ describe('interpreter', () => {
       value: 2,
     });
   });
+
+  it('can inject bindings defined by the system', () => {
+    const { value } = interpret(compile(ident('print')), {
+      bindings: new Map([['print', { type: ValueType.String, value: 'test' }]]),
+    });
+
+    expect(value).toEqual<T.StringValue>({
+      type: ValueType.String,
+      value: 'test',
+    });
+  });
 });

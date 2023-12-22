@@ -4,11 +4,14 @@ import { NodeType } from './syntax';
 import type * as T from './values';
 import { ValueType } from './values';
 
-export function interpret(program: CompilerOutput): InterpreterOutput {
+export function interpret(
+  program: CompilerOutput,
+  { bindings = new Map() }: InterpreterOptions = {},
+): InterpreterOutput {
   return {
     warnings: program.warnings,
     value: run(program.program, {
-      environment: new Map(),
+      environment: bindings,
     }),
   };
 }
@@ -69,6 +72,10 @@ function run(expression: Expression, context: EvaluationContext): T.Value {
       throw new InternalError(`Unexpected node type: ${expression.type}`);
     }
   }
+}
+
+interface InterpreterOptions {
+  bindings?: Map<string, T.Value>;
 }
 
 interface InterpreterOutput {
