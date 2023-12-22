@@ -9,6 +9,7 @@ import type {
   Expression,
   Binding,
   Location,
+  Lambda,
 } from './syntax';
 
 // Assumes the call stack is:
@@ -47,8 +48,18 @@ export const ident = (name: string): Identifier => ({
   name,
 });
 
+export const lambda = (
+  parameters: Array<Identifier>,
+  body: Expression,
+): Lambda => ({
+  location: getLocation(),
+  type: NodeType.Lambda,
+  parameters,
+  body,
+});
+
 export const call = (
-  callee: Identifier,
+  callee: Lambda | Identifier,
   ...args: Array<Expression>
 ): CallExpression => ({
   location: getLocation(),

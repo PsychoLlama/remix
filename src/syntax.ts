@@ -6,6 +6,7 @@ export enum NodeType {
   CallExpression,
   BindExpression,
   Binding,
+  Lambda,
 }
 
 export interface Location {
@@ -41,7 +42,7 @@ export interface BooleanLiteral extends AstNode {
 
 export interface CallExpression extends AstNode {
   type: NodeType.CallExpression;
-  callee: Identifier;
+  callee: Identifier | Lambda;
   arguments: Array<Expression>;
 }
 
@@ -57,10 +58,17 @@ export interface Binding extends AstNode {
   value: Expression;
 }
 
+export interface Lambda extends AstNode {
+  type: NodeType.Lambda;
+  parameters: Array<Identifier>;
+  body: Expression;
+}
+
 export type Expression =
   | Identifier
   | StringLiteral
   | NumberLiteral
   | BooleanLiteral
   | CallExpression
-  | BindExpression;
+  | BindExpression
+  | Lambda;

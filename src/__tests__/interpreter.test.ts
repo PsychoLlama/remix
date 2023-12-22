@@ -1,4 +1,4 @@
-import { str, num, bool, bind, assign, ident } from '../builders';
+import { str, num, bool, bind, assign, ident, lambda, call } from '../builders';
 import { interpret } from '../interpreter';
 import { compile } from '../compiler';
 import type * as T from '../values';
@@ -99,6 +99,66 @@ describe('interpreter', () => {
     expect(value).toEqual<T.StringValue>({
       type: ValueType.String,
       value: 'test',
+    });
+  });
+
+  it('can evaluate a lambda', () => {
+    const program = bind(
+      [assign(ident('identity'), lambda([ident('x')], ident('x')))],
+      call(ident('identity'), num(2)),
+    );
+
+    expect(run(program)).toEqual<T.NumberValue>({
+      type: ValueType.Number,
+      value: 2,
+    });
+  });
+
+  it('does not leak bindings from the callsite into the lambda', () => {
+    const program = bind(
+      [
+        assign(ident('conflict'), num(10)),
+        assign(ident('identity'), lambda([], ident('conflict'))),
+      ],
+
+      bind([assign(ident('conflict'), num(20))], call(ident('identity'))),
+    );
+
+    // Pull from the lambda's environment, not the callsite.
+    expect(run(program)).toEqual<T.NumberValue>({
+      type: ValueType.Number,
+      value: 10,
+    });
+  });
+
+  it('yells if you try to evaluate a lambda without enough arguments', () => {
+    const program = bind(
+      [assign(ident('identity'), lambda([ident('x')], ident('x')))],
+      call(ident('identity')),
+    );
+
+    expect(() => run(program)).toThrowErrorMatchingInlineSnapshot(
+      `[ArityMismatchError: Lambda called with incorrect number of arguments]`,
+    );
+  });
+
+  it('yells if you try to call something that is not a lambda', () => {
+    const program = bind(
+      [assign(ident('x'), str('hello world'))],
+      call(ident('x')),
+    );
+
+    expect(() => run(program)).toThrowErrorMatchingInlineSnapshot(
+      `[RuntimeError: Attempted to call a non-lambda value: String]`,
+    );
+  });
+
+  it('can evaluate inline lambdas', () => {
+    const program = call(lambda([ident('x')], ident('x')), num(2));
+
+    expect(run(program)).toEqual<T.NumberValue>({
+      type: ValueType.Number,
+      value: 2,
     });
   });
 });

@@ -1,7 +1,10 @@
+import type { Expression, Identifier } from './syntax';
+
 export enum ValueType {
   String,
   Number,
   Boolean,
+  Lambda,
 }
 
 export interface StringValue {
@@ -19,4 +22,11 @@ export interface BooleanValue {
   value: boolean;
 }
 
-export type Value = StringValue | NumberValue | BooleanValue;
+export interface Lambda {
+  type: ValueType.Lambda;
+  environment: Map<string, Value>;
+  parameters: Array<Identifier>;
+  body: Expression;
+}
+
+export type Value = StringValue | NumberValue | BooleanValue | Lambda;
