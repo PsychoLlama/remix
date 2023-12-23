@@ -6,7 +6,8 @@ import { ValueType } from './values';
 
 export function interpret(program: CompilerOutput): InterpreterOutput {
   const context: EvaluationContext = {
-    environment: program.bindings,
+    lexicalEnvironment: program.bindings,
+    contextualEnvironment: new Map(),
     invoke: (lambda, args) => invoke(lambda, args, context),
   };
 
@@ -81,13 +82,23 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
     case NodeType.BindExpression: {
       // Evaluate the bindings in order, adding them to the environment.
       const contextWithBindings = expression.bindings.reduce(
-        (layeredContext, binding) => ({
-          ...layeredContext,
-          environment: new Map([
-            ...layeredContext.environment,
-            [binding.identifier.name, run(binding.value, layeredContext)],
-          ]),
-        }),
+        (layeredContext, binding) => {
+          const value = run(binding.value, layeredContext);
+
+          // Contextual bindings come from the stack, while lexical bindings
+          // come from the scope.
+          const environmentType = binding.identifier.contextual
+            ? 'contextualEnvironment'
+            : 'lexicalEnvironment';
+
+          return {
+            ...layeredContext,
+            [environmentType]: new Map([
+              ...layeredContext[environmentType],
+              [binding.identifier.name, value],
+            ]),
+          };
+        },
         context,
       );
 
@@ -95,7 +106,9 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
     }
 
     case NodeType.Identifier: {
-      const value = context.environment.get(expression.name);
+      const value = expression.contextual
+        ? context.contextualEnvironment.get(expression.name)
+        : context.lexicalEnvironment.get(expression.name);
 
       // This should be caught by the compiler before it can get here.
       if (value === undefined) {
@@ -110,7 +123,7 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
     case NodeType.Lambda: {
       return {
         type: ValueType.Lambda,
-        environment: context.environment,
+        environment: context.lexicalEnvironment,
         parameters: expression.parameters,
         body: expression.body,
       };
@@ -155,7 +168,7 @@ function invoke(
 
   return run(callee.body, {
     ...context,
-    environment: new Map([
+    lexicalEnvironment: new Map([
       ...callee.environment,
       ...callee.parameters.map(
         (param, index) => [param.name, args[index]] as const,
@@ -171,7 +184,10 @@ interface InterpreterOutput {
 
 interface EvaluationContext {
   /** Any variables in scope. */
-  environment: Map<string, T.Value>;
+  lexicalEnvironment: Map<string, T.Value>;
+
+  /** Any variables passed through the stack. */
+  contextualEnvironment: Map<string, T.Value>;
 
   /** Invoke a lambda or host function. */
   invoke: (lambda: T.Lambda | T.Syscall, args: Array<T.Value>) => T.Value;

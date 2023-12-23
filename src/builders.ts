@@ -79,6 +79,14 @@ export const conditional = (
 export const ident = (name: string): Identifier => ({
   location: getLocation(),
   type: NodeType.Identifier,
+  contextual: false,
+  name,
+});
+
+export const context = (name: string): Identifier => ({
+  location: getLocation(),
+  type: NodeType.Identifier,
+  contextual: true,
   name,
 });
 

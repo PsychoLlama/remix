@@ -9,6 +9,7 @@ import {
   bind,
   assign,
   ident,
+  context,
   lambda,
   call,
 } from '../builders';
@@ -303,5 +304,22 @@ describe('interpreter', () => {
     expect(() => run(program)).toThrowErrorMatchingInlineSnapshot(
       `[RuntimeError: Expected a boolean value, got: Number]`,
     );
+  });
+
+  it('resolves contextual identifiers through the stack', () => {
+    const program = bind(
+      [
+        assign(context('conflict'), num(10)),
+        assign(ident('identity'), lambda([], context('conflict'))),
+      ],
+
+      bind([assign(context('conflict'), num(20))], call(ident('identity'), [])),
+    );
+
+    // Pull from the lambda's environment, not the callsite.
+    expect(run(program)).toEqual<T.NumberValue>({
+      type: ValueType.Number,
+      value: 20,
+    });
   });
 });

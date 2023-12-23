@@ -26,6 +26,7 @@ export interface AstNode {
 
 export interface Identifier extends AstNode {
   type: NodeType.Identifier;
+  contextual: boolean;
   name: string;
 }
 
