@@ -13,6 +13,7 @@ import {
   lambda,
   call,
   syscall,
+  sandbox,
 } from '../builders';
 import { interpret } from '../interpreter';
 import type { CompilerOptions } from '../compiler';
@@ -334,6 +335,34 @@ describe('interpreter', () => {
         { type: ValueType.String, value: 'Hello, world' },
         { type: ValueType.Number, value: 1 },
       ],
+    });
+  });
+
+  it('can sandbox expressions from contextual bindings', () => {
+    const program = bind(
+      [assign(context('value'), num(1))],
+      sandbox(context('value')),
+    );
+
+    expect(() => run(program)).toThrowErrorMatchingInlineSnapshot(
+      `[RuntimeError: Could not resolve identifier "value"]`,
+    );
+  });
+
+  it('can selectively escape sandboxing by shuffling context variables', () => {
+    const program = bind(
+      [
+        assign(context('value'), num(1)),
+        assign(ident('saved'), context('value')),
+      ],
+      sandbox(
+        bind([assign(context('value'), ident('saved'))], context('value')),
+      ),
+    );
+
+    expect(run(program)).toEqual<T.NumberValue>({
+      type: ValueType.Number,
+      value: 1,
     });
   });
 });

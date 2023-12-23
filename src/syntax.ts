@@ -11,6 +11,7 @@ export enum NodeType {
   BindExpression,
   Binding,
   Lambda,
+  Sandbox,
 }
 
 export interface Location {
@@ -91,6 +92,11 @@ export interface Lambda extends AstNode {
   body: Expression;
 }
 
+export interface Sandbox extends AstNode {
+  type: NodeType.Sandbox;
+  body: Expression;
+}
+
 export type Expression =
   | Identifier
   | StringLiteral
@@ -102,4 +108,5 @@ export type Expression =
   | ConditionalExpression
   | CallExpression
   | BindExpression
-  | Lambda;
+  | Lambda
+  | Sandbox;

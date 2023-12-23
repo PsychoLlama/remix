@@ -145,6 +145,13 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
       return invoke(callee, args, context);
     }
 
+    case NodeType.Sandbox: {
+      return run(expression.body, {
+        ...context,
+        contextualEnvironment: new Map(),
+      });
+    }
+
     default: {
       throw new InternalError(
         `Unexpected node type: ${(expression as A.Expression).type}`,

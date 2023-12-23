@@ -14,6 +14,7 @@ import type {
   Location,
   Lambda,
   ConditionalExpression,
+  Sandbox,
 } from './syntax';
 import type { Syscall } from './values';
 import { ValueType } from './values';
@@ -132,4 +133,10 @@ export const assign = (ident: Identifier, value: Expression): Binding => ({
 export const syscall = (handler: Syscall['handler']): Syscall => ({
   type: ValueType.Syscall,
   handler,
+});
+
+export const sandbox = (body: Expression): Sandbox => ({
+  location: getLocation(),
+  type: NodeType.Sandbox,
+  body,
 });
