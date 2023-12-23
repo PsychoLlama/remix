@@ -5,6 +5,8 @@ import type {
   NumberLiteral,
   BooleanLiteral,
   TupleExpression,
+  ListExpression,
+  StructExpression,
   CallExpression,
   BindExpression,
   Expression,
@@ -47,6 +49,18 @@ export const tuple = (elements: Array<Expression>): TupleExpression => ({
   location: getLocation(),
   type: NodeType.TupleExpression,
   elements,
+});
+
+export const list = (elements: Array<Expression>): ListExpression => ({
+  location: getLocation(),
+  type: NodeType.ListExpression,
+  elements,
+});
+
+export const struct = (fields: Array<Binding>): StructExpression => ({
+  location: getLocation(),
+  type: NodeType.StructExpression,
+  fields,
 });
 
 export const ident = (name: string): Identifier => ({

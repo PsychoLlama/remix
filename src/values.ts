@@ -5,6 +5,8 @@ export enum ValueType {
   Number,
   Boolean,
   Tuple,
+  List,
+  Struct,
   Lambda,
   Syscall,
 }
@@ -27,6 +29,16 @@ export interface BooleanValue {
 export interface Tuple {
   type: ValueType.Tuple;
   elements: Array<Value>;
+}
+
+export interface List {
+  type: ValueType.List;
+  elements: Array<Value>;
+}
+
+export interface Struct {
+  type: ValueType.Struct;
+  value: Map<string, Value>;
 }
 
 export interface Lambda {
@@ -53,5 +65,7 @@ export type Value =
   | NumberValue
   | BooleanValue
   | Tuple
+  | List
+  | Struct
   | Lambda
   | Syscall;

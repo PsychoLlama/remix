@@ -3,6 +3,8 @@ import {
   num,
   bool,
   tuple,
+  list,
+  struct,
   bind,
   assign,
   ident,
@@ -244,6 +246,37 @@ describe('interpreter', () => {
         { type: ValueType.Number, value: 1 },
         { type: ValueType.Number, value: 1 },
       ],
+    });
+  });
+
+  it('can evaluate a list', () => {
+    const program = bind(
+      [assign(ident('x'), list([num(1), num(2), num(3)]))],
+      ident('x'),
+    );
+
+    expect(run(program)).toEqual<T.List>({
+      type: ValueType.List,
+      elements: [
+        { type: ValueType.Number, value: 1 },
+        { type: ValueType.Number, value: 2 },
+        { type: ValueType.Number, value: 3 },
+      ],
+    });
+  });
+
+  it('can evaluate a struct', () => {
+    const program = struct([
+      assign(ident('a'), num(1)),
+      assign(ident('b'), num(2)),
+    ]);
+
+    expect(run(program)).toEqual<T.Struct>({
+      type: ValueType.Struct,
+      value: new Map([
+        ['a', { type: ValueType.Number, value: 1 }],
+        ['b', { type: ValueType.Number, value: 2 }],
+      ]),
     });
   });
 });

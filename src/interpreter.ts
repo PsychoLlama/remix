@@ -49,6 +49,25 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
       };
     }
 
+    case NodeType.ListExpression: {
+      return {
+        type: ValueType.List,
+        elements: expression.elements.map((element) => run(element, context)),
+      };
+    }
+
+    case NodeType.StructExpression: {
+      return {
+        type: ValueType.Struct,
+        value: new Map(
+          expression.fields.map((field) => [
+            field.identifier.name,
+            run(field.value, context),
+          ]),
+        ),
+      };
+    }
+
     case NodeType.BindExpression: {
       // Evaluate the bindings in order, adding them to the environment.
       const contextWithBindings = expression.bindings.reduce(
