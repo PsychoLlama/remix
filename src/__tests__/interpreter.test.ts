@@ -5,6 +5,7 @@ import {
   tuple,
   list,
   struct,
+  conditional,
   bind,
   assign,
   ident,
@@ -278,5 +279,28 @@ describe('interpreter', () => {
         ['b', { type: ValueType.Number, value: 2 }],
       ]),
     });
+  });
+
+  it('can evaluate a conditional', () => {
+    const program1 = conditional(bool(true), num(1), num(2));
+    const program2 = conditional(bool(false), num(1), num(2));
+
+    expect(run(program1)).toEqual<T.NumberValue>({
+      type: ValueType.Number,
+      value: 1,
+    });
+
+    expect(run(program2)).toEqual<T.NumberValue>({
+      type: ValueType.Number,
+      value: 2,
+    });
+  });
+
+  it('yells if you try to evaluate a conditional with a non-boolean condition', () => {
+    const program = conditional(num(1), num(1), num(2));
+
+    expect(() => run(program)).toThrowErrorMatchingInlineSnapshot(
+      `[RuntimeError: Expected a boolean value, got: Number]`,
+    );
   });
 });

@@ -68,6 +68,19 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
       };
     }
 
+    case NodeType.ConditionalExpression: {
+      const condition = run(expression.condition, context);
+
+      if (condition.type !== ValueType.Boolean) {
+        throw new RuntimeError(
+          `Expected a boolean value, got: ${ValueType[condition.type]}`,
+        );
+      }
+
+      const branch = condition.value ? expression.pass : expression.fail;
+      return run(branch, context);
+    }
+
     case NodeType.BindExpression: {
       // Evaluate the bindings in order, adding them to the environment.
       const contextWithBindings = expression.bindings.reduce(

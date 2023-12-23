@@ -13,6 +13,7 @@ import type {
   Binding,
   Location,
   Lambda,
+  ConditionalExpression,
 } from './syntax';
 
 // Assumes the call stack is:
@@ -61,6 +62,18 @@ export const struct = (fields: Array<Binding>): StructExpression => ({
   location: getLocation(),
   type: NodeType.StructExpression,
   fields,
+});
+
+export const conditional = (
+  condition: Expression,
+  pass: Expression,
+  fail: Expression,
+): ConditionalExpression => ({
+  location: getLocation(),
+  type: NodeType.ConditionalExpression,
+  condition,
+  pass,
+  fail,
 });
 
 export const ident = (name: string): Identifier => ({

@@ -6,6 +6,7 @@ export enum NodeType {
   TupleExpression,
   ListExpression,
   StructExpression,
+  ConditionalExpression,
   CallExpression,
   BindExpression,
   Binding,
@@ -58,6 +59,13 @@ export interface StructExpression extends AstNode {
   fields: Array<Binding>;
 }
 
+export interface ConditionalExpression extends AstNode {
+  type: NodeType.ConditionalExpression;
+  condition: Expression;
+  pass: Expression;
+  fail: Expression;
+}
+
 export interface CallExpression extends AstNode {
   type: NodeType.CallExpression;
   callee: Identifier | Lambda;
@@ -90,6 +98,7 @@ export type Expression =
   | TupleExpression
   | ListExpression
   | StructExpression
+  | ConditionalExpression
   | CallExpression
   | BindExpression
   | Lambda;
