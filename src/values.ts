@@ -42,7 +42,10 @@ export interface Lambda {
  */
 export interface Syscall {
   type: ValueType.Syscall;
-  handler: (args: Array<Value>) => Value;
+  handler: (
+    args: Array<Value>,
+    call: (lambda: Lambda, args: Array<Value>) => Value,
+  ) => Value;
 }
 
 export type Value =

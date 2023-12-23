@@ -216,4 +216,35 @@ describe('interpreter', () => {
       elements: [],
     });
   });
+
+  it('exposes the call function to syscalls', () => {
+    const program = call(
+      ident('apply'),
+      lambda([ident('x')], tuple([ident('x'), ident('x')])),
+      num(1),
+    );
+
+    const apply: T.Syscall = {
+      type: ValueType.Syscall,
+      handler: (args, call) => {
+        if (args[0].type !== ValueType.Lambda) {
+          throw new Error('Expected a lambda');
+        }
+
+        return call(args[0], args.slice(1));
+      },
+    };
+
+    const { value } = interpret(compile(program), {
+      bindings: new Map([['apply', apply]]),
+    });
+
+    expect(value).toEqual<T.Tuple>({
+      type: ValueType.Tuple,
+      elements: [
+        { type: ValueType.Number, value: 1 },
+        { type: ValueType.Number, value: 1 },
+      ],
+    });
+  });
 });

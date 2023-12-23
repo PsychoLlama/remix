@@ -1,5 +1,5 @@
 import type { CompilerMessage, CompilerOutput } from './compiler';
-import type { Expression } from './syntax';
+import type * as A from './syntax';
 import { NodeType } from './syntax';
 import type * as T from './values';
 import { ValueType } from './values';
@@ -8,15 +8,18 @@ export function interpret(
   program: CompilerOutput,
   { bindings = new Map() }: InterpreterOptions = {},
 ): InterpreterOutput {
+  const context: EvaluationContext = {
+    environment: bindings,
+    invoke: (lambda, args) => invoke(lambda, args, context),
+  };
+
   return {
     warnings: program.warnings,
-    value: run(program.program, {
-      environment: bindings,
-    }),
+    value: run(program.program, context),
   };
 }
 
-function run(expression: Expression, context: EvaluationContext): T.Value {
+function run(expression: A.Expression, context: EvaluationContext): T.Value {
   switch (expression.type) {
     case NodeType.StringLiteral: {
       return {
@@ -87,42 +90,49 @@ function run(expression: Expression, context: EvaluationContext): T.Value {
     case NodeType.CallExpression: {
       const callee = run(expression.callee, context);
 
-      if (callee.type === ValueType.Syscall) {
-        return callee.handler(
-          expression.arguments.map((arg) => run(arg, context)),
-        );
-      }
-
-      if (callee.type !== ValueType.Lambda) {
+      if (
+        callee.type !== ValueType.Lambda &&
+        callee.type !== ValueType.Syscall
+      ) {
         throw new RuntimeError(
           `Attempted to call a non-lambda value: ${ValueType[callee.type]}`,
         );
       }
 
-      if (callee.parameters.length !== expression.arguments.length) {
-        throw new ArityMismatchError(
-          callee.parameters.length,
-          expression.arguments.length,
-        );
-      }
-
-      const args = callee.parameters.map(
-        (param, index) =>
-          [param.name, run(expression.arguments[index], context)] as const,
-      );
-
-      return run(callee.body, {
-        ...context,
-        environment: new Map([...callee.environment, ...args]),
-      });
+      const args = expression.arguments.map((arg) => run(arg, context));
+      return invoke(callee, args, context);
     }
 
     default: {
       throw new InternalError(
-        `Unexpected node type: ${(expression as Expression).type}`,
+        `Unexpected node type: ${(expression as A.Expression).type}`,
       );
     }
   }
+}
+
+function invoke(
+  callee: T.Lambda | T.Syscall,
+  args: Array<T.Value>,
+  context: EvaluationContext,
+) {
+  if (callee.type === ValueType.Syscall) {
+    return callee.handler(args, context.invoke);
+  }
+
+  if (callee.parameters.length !== args.length) {
+    throw new ArityMismatchError(callee.parameters.length, args.length);
+  }
+
+  return run(callee.body, {
+    ...context,
+    environment: new Map([
+      ...callee.environment,
+      ...callee.parameters.map(
+        (param, index) => [param.name, args[index]] as const,
+      ),
+    ]),
+  });
 }
 
 interface InterpreterOptions {
@@ -137,6 +147,9 @@ interface InterpreterOutput {
 interface EvaluationContext {
   /** Any variables in scope. */
   environment: Map<string, T.Value>;
+
+  /** Invoke a lambda or host function. */
+  invoke: (lambda: T.Lambda | T.Syscall, args: Array<T.Value>) => T.Value;
 }
 
 /** These indicate a language bug. */
