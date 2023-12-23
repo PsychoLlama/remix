@@ -4,12 +4,9 @@ import { NodeType } from './syntax';
 import type * as T from './values';
 import { ValueType } from './values';
 
-export function interpret(
-  program: CompilerOutput,
-  { bindings = new Map() }: InterpreterOptions = {},
-): InterpreterOutput {
+export function interpret(program: CompilerOutput): InterpreterOutput {
   const context: EvaluationContext = {
-    environment: bindings,
+    environment: program.bindings,
     invoke: (lambda, args) => invoke(lambda, args, context),
   };
 
@@ -165,10 +162,6 @@ function invoke(
       ),
     ]),
   });
-}
-
-interface InterpreterOptions {
-  bindings?: Map<string, T.Value>;
 }
 
 interface InterpreterOutput {

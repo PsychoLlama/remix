@@ -13,14 +13,15 @@ import {
   call,
 } from '../builders';
 import { interpret } from '../interpreter';
+import type { CompilerOptions } from '../compiler';
 import { compile } from '../compiler';
 import type * as T from '../values';
 import { ValueType } from '../values';
 import type { Expression } from '../syntax';
 
 describe('interpreter', () => {
-  function run(program: Expression) {
-    const compiled = compile(program);
+  function run(program: Expression, options?: CompilerOptions) {
+    const compiled = compile(program, options);
     const { value } = interpret(compiled);
 
     return value;
@@ -127,7 +128,7 @@ describe('interpreter', () => {
   });
 
   it('can inject bindings defined by the system', () => {
-    const { value } = interpret(compile(ident('print')), {
+    const value = run(ident('print'), {
       bindings: new Map([['print', { type: ValueType.String, value: 'test' }]]),
     });
 
@@ -210,7 +211,7 @@ describe('interpreter', () => {
       },
     };
 
-    const { value } = interpret(compile(program), {
+    const value = run(program, {
       bindings: new Map([['print', print]]),
     });
 
@@ -237,7 +238,7 @@ describe('interpreter', () => {
       },
     };
 
-    const { value } = interpret(compile(program), {
+    const value = run(program, {
       bindings: new Map([['apply', apply]]),
     });
 
