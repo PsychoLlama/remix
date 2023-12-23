@@ -118,6 +118,22 @@ describe('interpreter', () => {
     });
   });
 
+  it('can use other variables in the same binding', () => {
+    const program = bind(
+      [
+        assign(ident('y'), ident('z')),
+        assign(ident('x'), num(1)),
+        assign(ident('z'), ident('x')),
+      ],
+      ident('y'),
+    );
+
+    expect(run(program)).toEqual<T.NumberValue>({
+      type: ValueType.Number,
+      value: 1,
+    });
+  });
+
   it('can override identifiers from the outer scope', () => {
     const program = bind(
       [assign(ident('x'), num(1))],

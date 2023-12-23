@@ -1,3 +1,4 @@
+import { thunk } from './builders';
 import type { CompilerMessage, CompilerOutput } from './compiler';
 import type * as A from './syntax';
 import { NodeType } from './syntax';
@@ -80,29 +81,26 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
     }
 
     case NodeType.BindExpression: {
-      // Evaluate the bindings in order, adding them to the environment.
-      const contextWithBindings = expression.bindings.reduce(
-        (layeredContext, binding) => {
-          const value = run(binding.value, layeredContext);
+      // Clone the inherited environment.
+      const newEnvironment: EvaluationContext = {
+        ...context,
+        contextualEnvironment: new Map(context.contextualEnvironment),
+        lexicalEnvironment: new Map(context.lexicalEnvironment),
+      };
 
-          // Contextual bindings come from the stack, while lexical bindings
-          // come from the scope.
-          const environmentType = binding.identifier.contextual
-            ? 'contextualEnvironment'
-            : 'lexicalEnvironment';
+      // Assign the variables, but don't evaluate them yet.
+      expression.bindings.forEach((binding) => {
+        const environmentType = binding.identifier.contextual
+          ? 'contextualEnvironment'
+          : 'lexicalEnvironment';
 
-          return {
-            ...layeredContext,
-            [environmentType]: new Map([
-              ...layeredContext[environmentType],
-              [binding.identifier.name, value],
-            ]),
-          };
-        },
-        context,
-      );
+        newEnvironment[environmentType].set(
+          binding.identifier.name,
+          thunk(binding.value, () => run(binding.value, newEnvironment)),
+        );
+      });
 
-      return run(expression.body, contextWithBindings);
+      return run(expression.body, newEnvironment);
     }
 
     case NodeType.Identifier: {
@@ -117,7 +115,7 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
         );
       }
 
-      return value;
+      return value.type === ValueType.Thunk ? value.get() : value;
     }
 
     case NodeType.Lambda: {

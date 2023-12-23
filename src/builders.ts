@@ -16,7 +16,7 @@ import type {
   ConditionalExpression,
   Sandbox,
 } from './syntax';
-import type { Syscall } from './values';
+import type { Syscall, Thunk, Value } from './values';
 import { ValueType } from './values';
 
 // Assumes the call stack is:
@@ -139,4 +139,24 @@ export const sandbox = (body: Expression): Sandbox => ({
   location: getLocation(),
   type: NodeType.Sandbox,
   body,
+});
+
+export const thunk = (
+  expression: Expression,
+  run: (expression: Expression) => Value,
+): Thunk => ({
+  type: ValueType.Thunk,
+  get: (() => {
+    let value:
+      | { evaluated: false; value: null }
+      | { evaluated: true; value: Value } = { evaluated: false, value: null };
+
+    return () => {
+      if (!value.evaluated) {
+        value = { evaluated: true, value: run(expression) };
+      }
+
+      return value.value;
+    };
+  })(),
 });

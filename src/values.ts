@@ -9,6 +9,7 @@ export enum ValueType {
   Struct,
   Lambda,
   Syscall,
+  Thunk,
 }
 
 export interface StringValue {
@@ -60,6 +61,11 @@ export interface Syscall {
   ) => Value;
 }
 
+export interface Thunk {
+  type: ValueType.Thunk;
+  get: () => Value;
+}
+
 export type Value =
   | StringValue
   | NumberValue
@@ -68,4 +74,5 @@ export type Value =
   | List
   | Struct
   | Lambda
-  | Syscall;
+  | Syscall
+  | Thunk;
