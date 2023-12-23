@@ -67,7 +67,7 @@ export const lambda = (
 
 export const call = (
   callee: Lambda | Identifier,
-  ...args: Array<Expression>
+  args: Array<Expression>,
 ): CallExpression => ({
   location: getLocation(),
   type: NodeType.CallExpression,

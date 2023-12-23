@@ -137,7 +137,7 @@ describe('interpreter', () => {
   it('can evaluate a lambda', () => {
     const program = bind(
       [assign(ident('identity'), lambda([ident('x')], ident('x')))],
-      call(ident('identity'), num(2)),
+      call(ident('identity'), [num(2)]),
     );
 
     expect(run(program)).toEqual<T.NumberValue>({
@@ -153,7 +153,7 @@ describe('interpreter', () => {
         assign(ident('identity'), lambda([], ident('conflict'))),
       ],
 
-      bind([assign(ident('conflict'), num(20))], call(ident('identity'))),
+      bind([assign(ident('conflict'), num(20))], call(ident('identity'), [])),
     );
 
     // Pull from the lambda's environment, not the callsite.
@@ -166,7 +166,7 @@ describe('interpreter', () => {
   it('yells if you try to evaluate a lambda without enough arguments', () => {
     const program = bind(
       [assign(ident('identity'), lambda([ident('x')], ident('x')))],
-      call(ident('identity')),
+      call(ident('identity'), []),
     );
 
     expect(() => run(program)).toThrowErrorMatchingInlineSnapshot(
@@ -177,7 +177,7 @@ describe('interpreter', () => {
   it('yells if you try to call something that is not a lambda', () => {
     const program = bind(
       [assign(ident('x'), str('hello world'))],
-      call(ident('x')),
+      call(ident('x'), []),
     );
 
     expect(() => run(program)).toThrowErrorMatchingInlineSnapshot(
@@ -186,7 +186,7 @@ describe('interpreter', () => {
   });
 
   it('can evaluate inline lambdas', () => {
-    const program = call(lambda([ident('x')], ident('x')), num(2));
+    const program = call(lambda([ident('x')], ident('x')), [num(2)]);
 
     expect(run(program)).toEqual<T.NumberValue>({
       type: ValueType.Number,
@@ -195,7 +195,7 @@ describe('interpreter', () => {
   });
 
   it('can invoke functions exposed by the host program', () => {
-    const program = call(ident('print'), str('hello world'));
+    const program = call(ident('print'), [str('hello world')]);
     const print: T.Syscall = {
       type: ValueType.Syscall,
       handler: (args) => {
@@ -218,11 +218,10 @@ describe('interpreter', () => {
   });
 
   it('exposes the call function to syscalls', () => {
-    const program = call(
-      ident('apply'),
+    const program = call(ident('apply'), [
       lambda([ident('x')], tuple([ident('x'), ident('x')])),
       num(1),
-    );
+    ]);
 
     const apply: T.Syscall = {
       type: ValueType.Syscall,
