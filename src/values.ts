@@ -6,6 +6,7 @@ export enum ValueType {
   Boolean,
   Tuple,
   Lambda,
+  Syscall,
 }
 
 export interface StringValue {
@@ -35,4 +36,19 @@ export interface Lambda {
   body: Expression;
 }
 
-export type Value = StringValue | NumberValue | BooleanValue | Tuple | Lambda;
+/**
+ * A syscall is a function provided by the runtime. It cannot be defined in
+ * the language itself. It must be passed by the host environment.
+ */
+export interface Syscall {
+  type: ValueType.Syscall;
+  handler: (args: Array<Value>) => Value;
+}
+
+export type Value =
+  | StringValue
+  | NumberValue
+  | BooleanValue
+  | Tuple
+  | Lambda
+  | Syscall;

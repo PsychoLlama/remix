@@ -193,4 +193,27 @@ describe('interpreter', () => {
       value: 2,
     });
   });
+
+  it('can invoke functions exposed by the host program', () => {
+    const program = call(ident('print'), str('hello world'));
+    const print: T.Syscall = {
+      type: ValueType.Syscall,
+      handler: (args) => {
+        expect(args).toEqual([
+          { type: ValueType.String, value: 'hello world' },
+        ]);
+
+        return { type: ValueType.Tuple, elements: [] };
+      },
+    };
+
+    const { value } = interpret(compile(program), {
+      bindings: new Map([['print', print]]),
+    });
+
+    expect(value).toEqual<T.Tuple>({
+      type: ValueType.Tuple,
+      elements: [],
+    });
+  });
 });

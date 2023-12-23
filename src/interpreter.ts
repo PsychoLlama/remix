@@ -87,6 +87,12 @@ function run(expression: Expression, context: EvaluationContext): T.Value {
     case NodeType.CallExpression: {
       const callee = run(expression.callee, context);
 
+      if (callee.type === ValueType.Syscall) {
+        return callee.handler(
+          expression.arguments.map((arg) => run(arg, context)),
+        );
+      }
+
       if (callee.type !== ValueType.Lambda) {
         throw new RuntimeError(
           `Attempted to call a non-lambda value: ${ValueType[callee.type]}`,
