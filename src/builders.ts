@@ -15,6 +15,8 @@ import type {
   Lambda,
   ConditionalExpression,
 } from './syntax';
+import type { Syscall } from './values';
+import { ValueType } from './values';
 
 // Assumes the call stack is:
 // <program> -> <builder> -> getLocation()
@@ -125,4 +127,9 @@ export const assign = (ident: Identifier, value: Expression): Binding => ({
   type: NodeType.Binding,
   identifier: ident,
   value,
+});
+
+export const syscall = (handler: Syscall['handler']): Syscall => ({
+  type: ValueType.Syscall,
+  handler,
 });

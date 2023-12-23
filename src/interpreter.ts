@@ -7,7 +7,7 @@ import { ValueType } from './values';
 export function interpret(program: CompilerOutput): InterpreterOutput {
   const context: EvaluationContext = {
     lexicalEnvironment: program.bindings,
-    contextualEnvironment: new Map(),
+    contextualEnvironment: program.context,
     invoke: (lambda, args) => invoke(lambda, args, context),
   };
 

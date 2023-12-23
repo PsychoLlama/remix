@@ -12,6 +12,7 @@ import {
   context,
   lambda,
   call,
+  syscall,
 } from '../builders';
 import { interpret } from '../interpreter';
 import type { CompilerOptions } from '../compiler';
@@ -201,16 +202,12 @@ describe('interpreter', () => {
 
   it('can invoke functions exposed by the host program', () => {
     const program = call(ident('print'), [str('hello world')]);
-    const print: T.Syscall = {
-      type: ValueType.Syscall,
-      handler: (args) => {
-        expect(args).toEqual([
-          { type: ValueType.String, value: 'hello world' },
-        ]);
 
-        return { type: ValueType.Tuple, elements: [] };
-      },
-    };
+    const print = syscall((args) => {
+      expect(args).toEqual([{ type: ValueType.String, value: 'hello world' }]);
+
+      return { type: ValueType.Tuple, elements: [] };
+    });
 
     const value = run(program, {
       bindings: new Map([['print', print]]),
@@ -228,16 +225,13 @@ describe('interpreter', () => {
       num(1),
     ]);
 
-    const apply: T.Syscall = {
-      type: ValueType.Syscall,
-      handler: (args, call) => {
-        if (args[0].type !== ValueType.Lambda) {
-          throw new Error('Expected a lambda');
-        }
+    const apply = syscall((args, call) => {
+      if (args[0].type !== ValueType.Lambda) {
+        throw new Error('Expected a lambda');
+      }
 
-        return call(args[0], args.slice(1));
-      },
-    };
+      return call(args[0], args.slice(1));
+    });
 
     const value = run(program, {
       bindings: new Map([['apply', apply]]),
@@ -320,6 +314,26 @@ describe('interpreter', () => {
     expect(run(program)).toEqual<T.NumberValue>({
       type: ValueType.Number,
       value: 20,
+    });
+  });
+
+  it('can expose contextual bindings from the host platform', () => {
+    const program = call(context('echo'), [str('Hello, world'), num(1)]);
+
+    const echo = syscall((args) => {
+      return { type: ValueType.List, elements: args };
+    });
+
+    const value = run(program, {
+      context: new Map([['echo', echo]]),
+    });
+
+    expect(value).toEqual<T.List>({
+      type: ValueType.List,
+      elements: [
+        { type: ValueType.String, value: 'Hello, world' },
+        { type: ValueType.Number, value: 1 },
+      ],
     });
   });
 });
