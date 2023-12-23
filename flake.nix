@@ -12,7 +12,12 @@
         (lib.genAttrs systems (system: nixpkgs.legacyPackages.${system}));
 
     in {
-      devShell = eachSystem
-        (system: pkgs: pkgs.mkShell { buildInputs = [ pkgs.nodejs ]; });
+      devShell = eachSystem (system: pkgs:
+        pkgs.mkShell {
+          buildInputs = with pkgs; [
+            nodejs
+            python3 # For node-gyp
+          ];
+        });
     };
 }
