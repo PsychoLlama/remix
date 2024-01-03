@@ -1,3 +1,4 @@
+import type { SyntaxNode } from 'tree-sitter';
 import { NodeType } from './syntax';
 import type {
   Identifier,
@@ -24,47 +25,58 @@ const DEFAULT_LOCATION: Location = {
   end: { row: 1, column: 1 },
 };
 
-export const str = (value: string, location?: Location): StringLiteral => ({
-  location: location ?? DEFAULT_LOCATION,
+const getLocation = (node: undefined | SyntaxNode): Location => {
+  if (node === undefined) {
+    return DEFAULT_LOCATION;
+  }
+
+  return {
+    start: node.startPosition,
+    end: node.endPosition,
+  };
+};
+
+export const str = (value: string, node?: SyntaxNode): StringLiteral => ({
+  location: getLocation(node),
   type: NodeType.StringLiteral,
   value,
 });
 
-export const num = (value: number, location?: Location): NumberLiteral => ({
-  location: location ?? DEFAULT_LOCATION,
+export const num = (value: number, node?: SyntaxNode): NumberLiteral => ({
+  location: getLocation(node),
   type: NodeType.NumberLiteral,
   value,
 });
 
-export const bool = (value: boolean, location?: Location): BooleanLiteral => ({
-  location: location ?? DEFAULT_LOCATION,
+export const bool = (value: boolean, node?: SyntaxNode): BooleanLiteral => ({
+  location: getLocation(node),
   type: NodeType.BooleanLiteral,
   value,
 });
 
 export const tuple = (
   elements: Array<Expression>,
-  location?: Location,
+  node?: SyntaxNode,
 ): TupleExpression => ({
-  location: location ?? DEFAULT_LOCATION,
+  location: getLocation(node),
   type: NodeType.TupleExpression,
   elements,
 });
 
 export const list = (
   elements: Array<Expression>,
-  location?: Location,
+  node?: SyntaxNode,
 ): ListExpression => ({
-  location: location ?? DEFAULT_LOCATION,
+  location: getLocation(node),
   type: NodeType.ListExpression,
   elements,
 });
 
 export const struct = (
   fields: Array<Binding>,
-  location?: Location,
+  node?: SyntaxNode,
 ): StructExpression => ({
-  location: location ?? DEFAULT_LOCATION,
+  location: getLocation(node),
   type: NodeType.StructExpression,
   fields,
 });
@@ -73,24 +85,24 @@ export const conditional = (
   condition: Expression,
   pass: Expression,
   fail: Expression,
-  location?: Location,
+  node?: SyntaxNode,
 ): ConditionalExpression => ({
-  location: location ?? DEFAULT_LOCATION,
+  location: getLocation(node),
   type: NodeType.ConditionalExpression,
   condition,
   pass,
   fail,
 });
 
-export const ident = (name: string, location?: Location): Identifier => ({
-  location: location ?? DEFAULT_LOCATION,
+export const ident = (name: string, node?: SyntaxNode): Identifier => ({
+  location: getLocation(node),
   type: NodeType.Identifier,
   contextual: false,
   name,
 });
 
-export const context = (name: string, location?: Location): Identifier => ({
-  location: location ?? DEFAULT_LOCATION,
+export const context = (name: string, node?: SyntaxNode): Identifier => ({
+  location: getLocation(node),
   type: NodeType.Identifier,
   contextual: true,
   name,
@@ -99,9 +111,9 @@ export const context = (name: string, location?: Location): Identifier => ({
 export const lambda = (
   parameters: Array<Identifier>,
   body: Expression,
-  location?: Location,
+  node?: SyntaxNode,
 ): Lambda => ({
-  location: location ?? DEFAULT_LOCATION,
+  location: getLocation(node),
   type: NodeType.Lambda,
   parameters,
   body,
@@ -110,9 +122,9 @@ export const lambda = (
 export const call = (
   callee: Lambda | Identifier,
   args: Array<Expression>,
-  location?: Location,
+  node?: SyntaxNode,
 ): CallExpression => ({
-  location: location ?? DEFAULT_LOCATION,
+  location: getLocation(node),
   type: NodeType.CallExpression,
   callee,
   arguments: args,
@@ -121,9 +133,9 @@ export const call = (
 export const bind = (
   bindings: Array<Binding>,
   body: Expression,
-  location?: Location,
+  node?: SyntaxNode,
 ): BindExpression => ({
-  location: location ?? DEFAULT_LOCATION,
+  location: getLocation(node),
   type: NodeType.BindExpression,
   bindings,
   body,
@@ -132,9 +144,9 @@ export const bind = (
 export const assign = (
   ident: Identifier,
   value: Expression,
-  location?: Location,
+  node?: SyntaxNode,
 ): Binding => ({
-  location: location ?? DEFAULT_LOCATION,
+  location: getLocation(node),
   type: NodeType.Binding,
   identifier: ident,
   value,
@@ -145,8 +157,8 @@ export const syscall = (handler: Syscall['handler']): Syscall => ({
   handler,
 });
 
-export const sandbox = (body: Expression, location?: Location): Sandbox => ({
-  location: location ?? DEFAULT_LOCATION,
+export const sandbox = (body: Expression, node?: SyntaxNode): Sandbox => ({
+  location: getLocation(node),
   type: NodeType.Sandbox,
   body,
 });

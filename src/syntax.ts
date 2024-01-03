@@ -14,6 +14,10 @@ export enum NodeType {
   Sandbox,
 }
 
+/**
+ * Text range of the syntax node in the source file. Values are 0-based.
+ * Column ranges are exclusive.
+ */
 export interface Location {
   start: { row: number; column: number };
   end: { row: number; column: number };
@@ -96,6 +100,7 @@ export interface Sandbox extends AstNode {
   body: Expression;
 }
 
+/** Any syntax expressible by the language. */
 export type Expression =
   | Identifier
   | StringLiteral
@@ -109,3 +114,6 @@ export type Expression =
   | BindExpression
   | Lambda
   | Sandbox;
+
+/** Any syntax expressible by the language PLUS intermediate structures. */
+export type Node = Expression | Binding;
