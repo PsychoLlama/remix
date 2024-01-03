@@ -13,7 +13,8 @@
     "prepack": "tsc && vite build",
     "build": "vite",
     "dev": "vite build --watch",
-    "test:unit": "vitest",
+    "test": "./scripts/run-tests",
+    "test:unit": "vitest --run",
     "test:lint": "eslint src --color",
     "test:types": "tsc",
     "test:fmt": "prettier --check src --color"

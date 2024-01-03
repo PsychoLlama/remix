@@ -1,0 +1,12 @@
+name: CI
+on: push
+
+jobs:
+  integration:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - run: nix develop --command npm install
+      - run: nix develop --command npm test
