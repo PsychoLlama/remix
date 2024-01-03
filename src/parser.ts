@@ -6,6 +6,13 @@ import * as build from './builders';
 const parser = new Parser();
 parser.setLanguage(remixGrammar);
 
+declare module 'tree-sitter' {
+  export interface SyntaxNode {
+    parametersNodes: Array<Parser.SyntaxNode>;
+    bodyNodes: Array<Parser.SyntaxNode>;
+  }
+}
+
 export const parseToCst = (input: string): Parser.Tree => {
   return parser.parse(input);
 };
@@ -44,6 +51,27 @@ const parseRecursively = (node: Parser.SyntaxNode): AST.Expression => {
         node.children.filter((n) => n.isNamed).map(parseRecursively),
         node,
       );
+    }
+
+    case 'identifier': {
+      return build.ident(node.text, node);
+    }
+
+    case 'condition': {
+      const [condition, pass, fail] = node.children
+        .filter((n) => n.isNamed)
+        .map(parseRecursively);
+
+      return build.conditional(condition, pass, fail, node);
+    }
+
+    case 'lambda': {
+      const body = parseRecursively(node.bodyNodes[0]);
+      const parameters = node.parametersNodes.map((node) =>
+        build.ident(node.text, node),
+      );
+
+      return build.lambda(parameters, body, node);
     }
 
     default: {

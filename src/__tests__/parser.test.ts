@@ -70,5 +70,36 @@ describe('parser', () => {
       expect(second.value).toBe('a');
       expect(third.value).toBe(true);
     });
+
+    it('can parse identifiers', () => {
+      const ast = parseToAst('x');
+
+      assert(ast.type === NodeType.Identifier);
+      expect(ast.name).toBe('x');
+    });
+
+    it('can parse conditionals', () => {
+      const ast = parseToAst('if true then 1 else "str"');
+
+      assert(ast.type === NodeType.ConditionalExpression);
+      assert(ast.condition.type === NodeType.BooleanLiteral);
+      assert(ast.pass.type === NodeType.NumberLiteral);
+      assert(ast.fail.type === NodeType.StringLiteral);
+
+      expect(ast.condition.value).toBe(true);
+      expect(ast.pass.value).toBe(1);
+      expect(ast.fail.value).toBe('str');
+    });
+
+    it('can parse lambdas', () => {
+      const ast = parseToAst('|x| 10');
+
+      assert(ast.type === NodeType.Lambda);
+      assert(ast.parameters.length === 1);
+      expect(ast.parameters[0].name).toBe('x');
+
+      assert(ast.body.type === NodeType.NumberLiteral);
+      expect(ast.body.value).toBe(10);
+    });
   });
 });
