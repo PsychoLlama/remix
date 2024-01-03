@@ -28,6 +28,10 @@ describe('parser', () => {
       });
     });
 
+    it('yells if the program cannot be parsed', () => {
+      expect(() => parseToAst('!#%#^&')).toThrow(/Unexpected node/);
+    });
+
     it('parses string literals', () => {
       const ast = parseToAst('"hello"');
 
@@ -100,6 +104,18 @@ describe('parser', () => {
 
       assert(ast.body.type === NodeType.NumberLiteral);
       expect(ast.body.value).toBe(10);
+    });
+
+    it('can parse variable bindings', () => {
+      const ast = parseToAst('let x = 10, y = x in y');
+
+      assert(ast.type === NodeType.BindExpression);
+      assert(ast.bindings.length === 2);
+      expect(ast.bindings[0].identifier.name).toBe('x');
+      expect(ast.bindings[1].identifier.name).toBe('y');
+
+      assert(ast.body.type === NodeType.Identifier);
+      expect(ast.body.name).toBe('y');
     });
   });
 });

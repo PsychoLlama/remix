@@ -10,6 +10,9 @@ declare module 'tree-sitter' {
   export interface SyntaxNode {
     parametersNodes: Array<Parser.SyntaxNode>;
     bodyNodes: Array<Parser.SyntaxNode>;
+    bindingsNodes: Array<Parser.SyntaxNode>;
+    identifierNode: Parser.SyntaxNode;
+    valueNodes: Array<Parser.SyntaxNode>;
   }
 }
 
@@ -19,6 +22,22 @@ export const parseToCst = (input: string): Parser.Tree => {
 
 export const parseToAst = (input: string): AST.Expression => {
   const cst = parseToCst(input);
+
+  const errors = cst.rootNode.descendantsOfType('ERROR');
+
+  if (errors.length > 0) {
+    const [
+      {
+        text,
+        startPosition: { row, column },
+      },
+    ] = errors;
+
+    throw new ParseError(
+      `Unexpected node (row ${row}, column ${column}): "${text}"`,
+    );
+  }
+
   return parseRecursively(cst.rootNode);
 };
 
@@ -26,7 +45,7 @@ const parseRecursively = (node: Parser.SyntaxNode): AST.Expression => {
   switch (node.type) {
     case 'source_file': {
       if (node.children.length !== 1) {
-        throw new ParseError('Programs must have exactly one expression');
+        throw new MalformedError('Programs must have exactly one expression');
       }
 
       return parseRecursively(node.children[0]);
@@ -57,6 +76,24 @@ const parseRecursively = (node: Parser.SyntaxNode): AST.Expression => {
       return build.ident(node.text, node);
     }
 
+    case 'bind_expression': {
+      const assignments = node.bindingsNodes
+        .filter((n) => n.isNamed)
+        .map((assignment) => {
+          const ident = build.ident(
+            assignment.identifierNode.text,
+            assignment.identifierNode,
+          );
+
+          const value = parseRecursively(assignment.valueNodes[0]);
+          return build.assign(ident, value, assignment);
+        });
+
+      const body = parseRecursively(node.bodyNodes[0]);
+
+      return build.bind(assignments, body, node);
+    }
+
     case 'condition': {
       const [condition, pass, fail] = node.children
         .filter((n) => n.isNamed)
@@ -75,11 +112,15 @@ const parseRecursively = (node: Parser.SyntaxNode): AST.Expression => {
     }
 
     default: {
-      throw new ParseError(`Unknown node type: ${node.type}`);
+      throw new MalformedError(`Unknown node type: ${node.type}`);
     }
   }
 };
 
 class ParseError extends Error {
   name = 'ParseError';
+}
+
+class MalformedError extends Error {
+  name = 'MalformedError';
 }
