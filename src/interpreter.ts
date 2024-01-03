@@ -4,6 +4,10 @@ import type * as A from './syntax';
 import { NodeType } from './syntax';
 import type * as T from './values';
 import { ValueType } from './values';
+import type { InspectOptionsStylized } from 'util';
+import { inspect } from 'util';
+
+const { custom } = inspect;
 
 export function interpret(program: CompilerOutput): InterpreterOutput {
   const context: EvaluationContext = {
@@ -24,6 +28,11 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
       return {
         type: ValueType.String,
         value: expression.value,
+        [custom]: (
+          _: unknown,
+          options: InspectOptionsStylized,
+          show: typeof inspect,
+        ) => show(expression.value, options),
       };
     }
 
@@ -31,6 +40,7 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
       return {
         type: ValueType.Number,
         value: expression.value,
+        [custom]: () => expression.value,
       };
     }
 
@@ -38,13 +48,23 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
       return {
         type: ValueType.Boolean,
         value: expression.value,
+        [custom]: () => expression.value,
       };
     }
 
     case NodeType.TupleExpression: {
+      const elements = expression.elements.map((element) =>
+        run(element, context),
+      );
+
       return {
         type: ValueType.Tuple,
-        elements: expression.elements.map((element) => run(element, context)),
+        elements,
+        [custom]: (
+          _: number,
+          options: InspectOptionsStylized,
+          show: typeof inspect,
+        ) => `(${elements.map((i) => show(i, options)).join(', ')})`,
       };
     }
 
@@ -124,6 +144,10 @@ function run(expression: A.Expression, context: EvaluationContext): T.Value {
         environment: context.lexicalEnvironment,
         parameters: expression.parameters,
         body: expression.body,
+        [custom]: (_: unknown, options: InspectOptionsStylized) =>
+          `${options.stylize('lambda', 'special')}(${expression.parameters
+            .map((n) => options.stylize(n.name, 'string'))
+            .join(', ')})`,
       };
     }
 

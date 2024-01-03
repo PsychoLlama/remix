@@ -1,0 +1,3 @@
+let result = true, double = |a| (a, a) in
+
+@print double ("it works", result)

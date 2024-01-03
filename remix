@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+exec node --no-warnings --loader @swc-node/register/esm src/index.ts "$@"
