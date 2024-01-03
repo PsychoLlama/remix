@@ -75,11 +75,20 @@ describe('parser', () => {
       expect(third.value).toBe(true);
     });
 
-    it('can parse identifiers', () => {
-      const ast = parseToAst('x');
+    it('can parse lexical identifiers', () => {
+      const ast = parseToAst('lexical');
 
       assert(ast.type === NodeType.Identifier);
-      expect(ast.name).toBe('x');
+      expect(ast.name).toBe('lexical');
+      expect(ast.contextual).toBe(false);
+    });
+
+    it('can parse dynamic identifiers', () => {
+      const ast = parseToAst('@dynamic');
+
+      assert(ast.type === NodeType.Identifier);
+      expect(ast.name).toBe('dynamic');
+      expect(ast.contextual).toBe(true);
     });
 
     it('can parse conditionals', () => {
@@ -106,6 +115,20 @@ describe('parser', () => {
       expect(ast.body.value).toBe(10);
     });
 
+    it('can parse call expressions', () => {
+      const ast = parseToAst('fn 10 "str" ()');
+
+      assert(ast.type === NodeType.CallExpression);
+      assert(ast.callee.type === NodeType.Identifier);
+      expect(ast.callee.name).toBe('fn');
+
+      expect(ast.arguments).toEqual([
+        expect.objectContaining({ type: NodeType.NumberLiteral }),
+        expect.objectContaining({ type: NodeType.StringLiteral }),
+        expect.objectContaining({ type: NodeType.TupleExpression }),
+      ]);
+    });
+
     it('can parse variable bindings', () => {
       const ast = parseToAst('let x = 10, y = x in y');
 
@@ -116,6 +139,13 @@ describe('parser', () => {
 
       assert(ast.body.type === NodeType.Identifier);
       expect(ast.body.name).toBe('y');
+    });
+
+    it('can parse sandbox expressions', () => {
+      const ast = parseToAst('sandbox fn ()');
+
+      assert(ast.type === NodeType.Sandbox);
+      assert(ast.body.type === NodeType.CallExpression);
     });
   });
 });

@@ -10,9 +10,12 @@ declare module 'tree-sitter' {
   export interface SyntaxNode {
     parametersNodes: Array<Parser.SyntaxNode>;
     bodyNodes: Array<Parser.SyntaxNode>;
+    bodyNode: Parser.SyntaxNode;
     bindingsNodes: Array<Parser.SyntaxNode>;
     identifierNode: Parser.SyntaxNode;
     valueNodes: Array<Parser.SyntaxNode>;
+    calleeNodes: Array<Parser.SyntaxNode>;
+    argumentsNodes: Array<Parser.SyntaxNode>;
   }
 }
 
@@ -73,6 +76,12 @@ const parseRecursively = (node: Parser.SyntaxNode): AST.Expression => {
     }
 
     case 'identifier': {
+      const contextual = node.text.startsWith('@');
+
+      if (contextual) {
+        return build.context(node.text.slice(1), node);
+      }
+
       return build.ident(node.text, node);
     }
 
@@ -109,6 +118,20 @@ const parseRecursively = (node: Parser.SyntaxNode): AST.Expression => {
       );
 
       return build.lambda(parameters, body, node);
+    }
+
+    case 'call_expression': {
+      const callee = parseRecursively(node.calleeNodes[0]);
+      const args = node.argumentsNodes
+        .filter((n) => n.isNamed)
+        .map(parseRecursively);
+
+      return build.call(callee as AST.Identifier | AST.Lambda, args, node);
+    }
+
+    case 'sandbox': {
+      const body = parseRecursively(node.bodyNode);
+      return build.sandbox(body, node);
     }
 
     default: {
