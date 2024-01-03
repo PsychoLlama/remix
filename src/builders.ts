@@ -19,50 +19,52 @@ import type {
 import type { Syscall, Thunk, Value } from './values';
 import { ValueType } from './values';
 
-// Assumes the call stack is:
-// <program> -> <builder> -> getLocation()
-const getLocation = (): Location => {
-  const { stack } = new Error();
-  const source = stack!.split('\n')[3].split(/\s+/).at(-1);
-  const chunks = source!.split(':');
-  const [line, column] = chunks.slice(-2).map(Number);
-  const file = chunks.slice(0, -2).join(':');
-
-  return { file, line, column };
+const DEFAULT_LOCATION: Location = {
+  start: { row: 1, column: 1 },
+  end: { row: 1, column: 1 },
 };
 
-export const str = (value: string): StringLiteral => ({
-  location: getLocation(),
+export const str = (value: string, location?: Location): StringLiteral => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.StringLiteral,
   value,
 });
 
-export const num = (value: number): NumberLiteral => ({
-  location: getLocation(),
+export const num = (value: number, location?: Location): NumberLiteral => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.NumberLiteral,
   value,
 });
 
-export const bool = (value: boolean): BooleanLiteral => ({
-  location: getLocation(),
+export const bool = (value: boolean, location?: Location): BooleanLiteral => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.BooleanLiteral,
   value,
 });
 
-export const tuple = (elements: Array<Expression>): TupleExpression => ({
-  location: getLocation(),
+export const tuple = (
+  elements: Array<Expression>,
+  location?: Location,
+): TupleExpression => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.TupleExpression,
   elements,
 });
 
-export const list = (elements: Array<Expression>): ListExpression => ({
-  location: getLocation(),
+export const list = (
+  elements: Array<Expression>,
+  location?: Location,
+): ListExpression => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.ListExpression,
   elements,
 });
 
-export const struct = (fields: Array<Binding>): StructExpression => ({
-  location: getLocation(),
+export const struct = (
+  fields: Array<Binding>,
+  location?: Location,
+): StructExpression => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.StructExpression,
   fields,
 });
@@ -71,23 +73,24 @@ export const conditional = (
   condition: Expression,
   pass: Expression,
   fail: Expression,
+  location?: Location,
 ): ConditionalExpression => ({
-  location: getLocation(),
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.ConditionalExpression,
   condition,
   pass,
   fail,
 });
 
-export const ident = (name: string): Identifier => ({
-  location: getLocation(),
+export const ident = (name: string, location?: Location): Identifier => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.Identifier,
   contextual: false,
   name,
 });
 
-export const context = (name: string): Identifier => ({
-  location: getLocation(),
+export const context = (name: string, location?: Location): Identifier => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.Identifier,
   contextual: true,
   name,
@@ -96,8 +99,9 @@ export const context = (name: string): Identifier => ({
 export const lambda = (
   parameters: Array<Identifier>,
   body: Expression,
+  location?: Location,
 ): Lambda => ({
-  location: getLocation(),
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.Lambda,
   parameters,
   body,
@@ -106,8 +110,9 @@ export const lambda = (
 export const call = (
   callee: Lambda | Identifier,
   args: Array<Expression>,
+  location?: Location,
 ): CallExpression => ({
-  location: getLocation(),
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.CallExpression,
   callee,
   arguments: args,
@@ -116,15 +121,20 @@ export const call = (
 export const bind = (
   bindings: Array<Binding>,
   body: Expression,
+  location?: Location,
 ): BindExpression => ({
-  location: getLocation(),
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.BindExpression,
   bindings,
   body,
 });
 
-export const assign = (ident: Identifier, value: Expression): Binding => ({
-  location: getLocation(),
+export const assign = (
+  ident: Identifier,
+  value: Expression,
+  location?: Location,
+): Binding => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.Binding,
   identifier: ident,
   value,
@@ -135,8 +145,8 @@ export const syscall = (handler: Syscall['handler']): Syscall => ({
   handler,
 });
 
-export const sandbox = (body: Expression): Sandbox => ({
-  location: getLocation(),
+export const sandbox = (body: Expression, location?: Location): Sandbox => ({
+  location: location ?? DEFAULT_LOCATION,
   type: NodeType.Sandbox,
   body,
 });

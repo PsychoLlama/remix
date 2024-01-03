@@ -15,9 +15,8 @@ export enum NodeType {
 }
 
 export interface Location {
-  file: string;
-  line: number;
-  column: number;
+  start: { row: number; column: number };
+  end: { row: number; column: number };
 }
 
 export interface AstNode {

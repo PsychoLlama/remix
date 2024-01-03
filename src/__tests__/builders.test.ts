@@ -1,12 +1,15 @@
 import * as b from '../builders';
+import type { Location } from '../syntax';
 
 describe('builders', () => {
   it('attaches a location to the definition', () => {
-    const node = b.ident('x');
+    const location: Location = {
+      start: { row: 1, column: 2 },
+      end: { row: 2, column: 20 },
+    };
 
-    // Fragile test. Depends on how the test runner transforms the file.
-    expect(node.location.file).toMatch(/builders\.test\.ts$/);
-    expect(node.location.line).toBeGreaterThan(0);
-    expect(node.location.column).toBeGreaterThan(0);
+    const node = b.ident('x', location);
+
+    expect(node.location).toEqual(location);
   });
 });
