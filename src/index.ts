@@ -13,6 +13,25 @@ async function main(programFile: string) {
   const file = await readFile(programFile, 'utf-8');
   const ast = parseToAst(file);
   const compiled = compile(ast, {
+    bindings: new Map([
+      [
+        'add',
+        syscall((args: Value[]): Value => {
+          if (
+            args[0].type !== ValueType.Number ||
+            args[1].type !== ValueType.Number
+          ) {
+            throw new Error('Cannot add non-numbers');
+          }
+
+          return {
+            type: ValueType.Number,
+            value: args[0].value + args[1].value,
+          };
+        }),
+      ],
+    ]),
+
     context: new Map([
       [
         'print',
