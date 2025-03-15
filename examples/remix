@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-exec node "$(dirname "$0")/../dist/minilang.js" "$@"
+exec node "$(dirname "$0")/../dist/remix.js" "$@"

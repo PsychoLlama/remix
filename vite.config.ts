@@ -14,7 +14,7 @@ export default async () => {
       target: 'esnext',
       lib: {
         entry: path.join(__dirname, './src/index.ts'),
-        fileName: 'minilang',
+        fileName: 'remix',
         formats: ['es'],
       },
       rollupOptions: {

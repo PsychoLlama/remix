@@ -1,5 +1,5 @@
 {
-  "name": "@psychollama/minilang",
+  "name": "@psychollama/remix",
   "version": "0.0.0",
   "description": "A minimal programming language",
   "author": "Jesse Gibson",
@@ -7,7 +7,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./dist/minilang.js"
+    ".": "./dist/remix.js"
   },
   "scripts": {
     "prepack": "tsc && vite build",
